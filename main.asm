@@ -115,6 +115,48 @@
 	lds	r16,SRAM_START + 9	;LED bit pattern for 9
 	call	STORE_FROMR16_LENR0
 
+;Load in the second sequence (My TUID 915558147)
+;Start pointer for SW2_PATTERNS
+	ldi	zh,high(SW2_PATTERNS)
+	ldi	zl, low(SW2_PATTERNS)
+;Length and 9 digits
+	ldi	r16,10	;number of registers to store
+	mov	r0,r16	;store in r0
+	ldi	r16,10	;number of characters to be displayed
+	lds	r17,SRAM_START + 9	;LED bit pattern for 9
+	lds	r18,SRAM_START + 1	;LED bit pattern for 1
+	lds	r19,SRAM_START + 5	;LED bit pattern for 5
+	lds	r20,SRAM_START + 5	;LED bit pattern for 5
+	lds	r21,SRAM_START + 5	;LED bit pattern for 5
+	lds	r22,SRAM_START + 8	;LED bit pattern for 8
+	lds	r23,SRAM_START + 1	;LED bit pattern for 1
+	lds	r24,SRAM_START + 4	;LED bit pattern for 4
+	lds	r25,SRAM_START + 7	;LED bit pattern for 7
+	call	STORE_FROMR16_LENR0
+
+;Load in the third sequence ("BEAt UConn")
+	ldi	zh,high(SW3_PATTERNS)
+	ldi	zl, low(SW3_PATTERNS)
+;First length and first 9 characters (B to n1)
+	ldi	r16,10	;number of registers to store
+	mov	r0,r16	;store in r0
+	ldi	r16,10	;number of charactres to be displayed
+	lds	r17,SRAM_START + 10 - 'A' + 'B'	;LED bit pattern for 'B'
+	lds	r18,SRAM_START + 10 - 'A' + 'E'	;LED bit pattern for 'E'
+	lds	r19,SRAM_START + 10 - 'A' + 'A'	;LED bit pattern for 'A'
+	lds	r20,SRAM_START + 10 - 'A' + 'T'	;LED bit pattern for 't'
+	ldi	r21,0x00	;blank space
+	lds	r22,SRAM_START + 10 - 'A' + 'U'	;LED bit pattern for 'U'
+	lds	r23,SRAM_START + 10 - 'A' + 'C'	;LED bit pattern for 'C'
+	lds	r24,SRAM_START + 10 - 'A' + 'O'	;LED bit pattern for 'o'
+	lds	r25,SRAM_START + 10 - 'A' + 'N'	;LED bit pattern for 'n'
+	call	STORE_FROMR16_LENR0
+;Then last character (n1) as well
+	ldi	r16,1	;number of registers to store
+	mov	r0,r16	;store in r0
+	lds	r16,SRAM_START + 10 - 'A' + 'N'	;LED bit pattern for 'n'
+	call	STORE_FROMR16_LENR0
+
 ; REPEAT:
 	; ;Reset address counter
 	; ldi	zh,high(SRAM_START)
