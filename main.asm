@@ -2,7 +2,7 @@
 ; Seven Segment Display.asm
 ;
 ; Created: 2/22/2020 3:48:24 PM
-; Author : Leomar Duran
+; Author : Leomar Duran <https://github.com/lduran2>
 ; Board  : ATmega324PB
 ; For    : ECE 3612, Spring 2020
 ;
@@ -10,6 +10,10 @@
 
 ;Start of immediate registers 16:31
 .equ	IMED_START=0x0010
+;Switch pattern address starts
+.equ	SW1_PATTERNS=SRAM_START | 0x40
+.equ	SW2_PATTERNS=SRAM_START | 0x80
+.equ	SW3_PATTERNS=SRAM_START | 0xC0
 
 ;Set the stack pointer
 	ldi	r16,high(RAMEND)
@@ -72,7 +76,7 @@
 	ldi	r25,0b01111000	;LED bit pattern for t
 	call	STORE_FROMR16_LENR0
 
-;Load the bitpatterns for U to Z into registers r16:r21
+;Load the bitpatterns for U to [Space] into registers r16:r21
 	ldi	r16,6	;length (U:Z)
 	mov	r0,r16	;store in r0
 	ldi	r16,0b00111110	;LED bit pattern for U
@@ -83,26 +87,48 @@
 	ldi	r21,0b01011011	;LED bit pattern for Z
 	call	STORE_FROMR16_LENR0
 
-;Test the bit patterns (0:Z)
-	;set PORTA to output
+;Set PORTA to output
 	ldi	r16,$FF
 	out	DDRA,r16
 
-REPEAT:
-	;Reset address counter
-	ldi	zh,high(SRAM_START)
-	ldi	zl, low(SRAM_START)
-	ldi	r17,36	;counter
-NEXT_DIGIT:
-	ld	r16,z+	;load next bit pattern
-	out	PORTA,R16	;write the digit
-	call	DELAY_1_2	;wait 1/2 a second
-	dec	r17	;decrease the counter
-	brne	NEXT_DIGIT	;if not zero, continue
-	rjmp	REPEAT	;repeat indefinitely
+;Load in the first sequence (the numbers 0 to 9)
+;Start pointer for SW1_PATTERNS
+	ldi	zh,high(SW1_PATTERNS)
+	ldi	zl, low(SW1_PATTERNS)
+;First length and 0 to 8
+	ldi	r16,10	;number of registers to store
+	mov	r0,r16	;store in r0
+	ldi	r16,10	;number of characters that will be displayed
+	lds	r17,SRAM_START + 0	;LED bit pattern for 0
+	lds	r18,SRAM_START + 1	;LED bit pattern for 1
+	lds	r19,SRAM_START + 2	;LED bit pattern for 2
+	lds	r20,SRAM_START + 3	;LED bit pattern for 3
+	lds	r21,SRAM_START + 4	;LED bit pattern for 4
+	lds	r22,SRAM_START + 5	;LED bit pattern for 5
+	lds	r23,SRAM_START + 6	;LED bit pattern for 6
+	lds	r24,SRAM_START + 7	;LED bit pattern for 7
+	lds	r25,SRAM_START + 8	;LED bit pattern for 8
+	call	STORE_FROMR16_LENR0
+;Then 9 as well
+	ldi	r16,1	;number of registers to store
+	mov	r0,r16	;store in r0
+	lds	r16,SRAM_START + 9	;LED bit pattern for 9
+	call	STORE_FROMR16_LENR0
 
-;Infinite loop at end
-end:	rjmp	end
+; REPEAT:
+	; ;Reset address counter
+	; ldi	zh,high(SRAM_START)
+	; ldi	zl, low(SRAM_START)
+	; ldi	r17,36	;counter
+; NEXT_DIGIT:
+	; ld	r16,z+	;load next bit pattern
+	; out	PORTA,R16	;write the digit
+	; call	DELAY_1_2	;wait 1/2 a second
+	; dec	r17	;decrease the counter
+	; brne	NEXT_DIGIT	;if not zero, continue
+	; rjmp	REPEAT	;repeat indefinitely
+; ;Infinite loop at end
+; end:	rjmp	end
 
 ;---------------APPROXIMATE 1/2 SECOND DELAY
 DELAY_1_2:
@@ -120,7 +146,8 @@ DELAY_1_64_L3: NOP
 	BRNE DELAY_1_64
 	RET
 
-;---------------Stores the registers starting at R16, using R0 as the length.
+;---------------
+;Stores the registers starting at R16, using R0 as the length.
 STORE_FROMR16_LENR0:
 	;register counter
 	ldi	yh,high(IMED_START)
