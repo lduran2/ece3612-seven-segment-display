@@ -157,20 +157,20 @@
 	lds	r16,SRAM_START + 10 - 'A' + 'N'	;LED bit pattern for 'n'
 	call	STORE_FROMR16_LENR0
 
-; REPEAT:
-	; ;Reset address counter
-	; ldi	zh,high(SRAM_START)
-	; ldi	zl, low(SRAM_START)
-	; ldi	r17,36	;counter
-; NEXT_DIGIT:
-	; ld	r16,z+	;load next bit pattern
-	; out	PORTA,R16	;write the digit
-	; call	DELAY_1_2	;wait 1/2 a second
-	; dec	r17	;decrease the counter
-	; brne	NEXT_DIGIT	;if not zero, continue
-	; rjmp	REPEAT	;repeat indefinitely
-; ;Infinite loop at end
-; end:	rjmp	end
+REPEAT:
+	;Load up switch 1 patterns.
+	ldi	zh,high(SW1_PATTERNS)
+	ldi	zl, low(SW1_PATTERNS)
+	ld	r1,z+	;counter
+NEXT_DIGIT:
+	ld	r0,z+	;load next bit pattern
+	out	PORTA,R0	;write the digit
+	call	DELAY_1_2	;wait 1/2 a second
+	dec	r1	;decrease the counter
+	brne	NEXT_DIGIT	;if not zero, continue
+	rjmp	REPEAT	;repeat indefinitely
+;Infinite loop at end
+end:	rjmp	end
 
 ;---------------APPROXIMATE 1/2 SECOND DELAY
 DELAY_1_2:
