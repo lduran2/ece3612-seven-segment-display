@@ -87,9 +87,16 @@
 	ldi	r21,0b01011011	;LED bit pattern for Z
 	call	STORE_FROMR16_LENR0
 
-;Set PORTA to output
+;Set up the ports
+	;set PORTA to output
 	ldi	r16,$FF
 	out	DDRA,r16
+	;throw PORTB pull switches
+	ldi	r16,$FF
+	out PORTB,r17
+	;set PORTB to input
+	ldi	r16,$00
+	out DDRB,r17
 
 ;Load in the first sequence (the numbers 0 to 9)
 ;Start pointer for SW1_PATTERNS
@@ -122,7 +129,7 @@
 ;Length and 9 digits
 	ldi	r16,10	;number of registers to store
 	mov	r0,r16	;store in r0
-	ldi	r16,10	;number of characters to be displayed
+	ldi	r16,9	;number of characters to be displayed
 	lds	r17,SRAM_START + 9	;LED bit pattern for 9
 	lds	r18,SRAM_START + 1	;LED bit pattern for 1
 	lds	r19,SRAM_START + 5	;LED bit pattern for 5
@@ -157,10 +164,48 @@
 	lds	r16,SRAM_START + 10 - 'A' + 'N'	;LED bit pattern for 'n'
 	call	STORE_FROMR16_LENR0
 
-REPEAT:
-	;Load up switch 1 patterns.
+;Show the bit patterns
+;Switch listener loop
+GET_SWITCH:
+	;On switch 1 active low
+	sbis	PINB,0	;if SW 1 is clear:
+	rjmp	SW1C	;goto SW1C
+	sbis	PINB,1	;if SW 2 is clear:
+	rjmp	SW2C	;goto SW2C
+	sbis	PINB,2	;if SW 3 is clear:
+	rjmp	SW3C	;goto SW3C
+	rjmp	GET_SWITCH	;repeat without a switch
+CHECKED_SWITCHES:	;finished checking all switches
+	call	SHOW_PATTERN
+	rjmp	GET_SWITCH	;repeat after a switch
+
+;Infinite loop at end
+end:	rjmp	end
+
+;---------------
+;Load up switch 1 patterns.
+SW1C:
 	ldi	zh,high(SW1_PATTERNS)
 	ldi	zl, low(SW1_PATTERNS)
+	rjmp	CHECKED_SWITCHES	;continue
+
+;---------------
+;Load up switch 2 patterns.
+SW2C:
+	ldi	zh,high(SW2_PATTERNS)
+	ldi	zl, low(SW2_PATTERNS)
+	rjmp	CHECKED_SWITCHES	;continue
+
+;---------------
+;Load up switch 3 patterns.
+SW3C:
+	ldi	zh,high(SW3_PATTERNS)
+	ldi	zl, low(SW3_PATTERNS)
+	rjmp	CHECKED_SWITCHES	;continue
+
+;---------------
+;Show a sequence of the bit patterns.
+SHOW_PATTERN:
 	ld	r1,z+	;counter
 NEXT_DIGIT:
 	ld	r0,z+	;load next bit pattern
@@ -168,9 +213,7 @@ NEXT_DIGIT:
 	call	DELAY_1_2	;wait 1/2 a second
 	dec	r1	;decrease the counter
 	brne	NEXT_DIGIT	;if not zero, continue
-	rjmp	REPEAT	;repeat indefinitely
-;Infinite loop at end
-end:	rjmp	end
+	ret	;return to switch listener loop
 
 ;---------------APPROXIMATE 1/2 SECOND DELAY
 DELAY_1_2:
