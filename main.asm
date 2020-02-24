@@ -206,12 +206,27 @@ SW3C:
 ;---------------
 ;Show a sequence of the bit patterns.
 SHOW_PATTERN:
-	ld	r1,z+	;counter
+	ld	r2,z+	;counter
+	ld	r0,z+	;load current bit pattern
 NEXT_DIGIT:
-	ld	r0,z+	;load next bit pattern
-	out	PORTA,R0	;write the digit
+	ld	r1,z+	;load next bit pattern
+	out	PORTA,R0	;write the pattern
+	cp	r0,r1	;if the current and next bit pattern are equal
+	brne	DIFFERENT_PATTERNS;otherwise, skip
+	;if equal, blank for 1/16 of a second to allow differentiation
+	; of same character
+	ldi	r20,24	;show only for (28/64) 7/16 of a second
+	call	DELAY_1_64	;wait 7/16 a second
+	ldi	r16,0x00	;blank out the display
+	out	PORTA,R16	;write the blank
+	ldi	r20,4	;blank for (4/64) 1/16 of a second
+	call	DELAY_1_64	;wait 7/16 a second
+	rjmp	FINISH_SHOW_PATTERN	;finish the loop
+DIFFERENT_PATTERNS:
 	call	DELAY_1_2	;wait 1/2 a second
-	dec	r1	;decrease the counter
+FINISH_SHOW_PATTERN:
+	dec	r2	;decrease the counter
+	mov	r0,r1	;copy next bit pattern
 	brne	NEXT_DIGIT	;if not zero, continue
 	ret	;return to switch listener loop
 
