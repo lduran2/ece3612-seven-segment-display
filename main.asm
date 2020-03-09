@@ -93,10 +93,10 @@
 	out	DDRA,r16
 	;throw PORTB pull switches
 	ldi	r16,$FF
-	out PORTB,r17
+	out PORTB,r16
 	;set PORTB to input
 	ldi	r16,$00
-	out DDRB,r17
+	out DDRB,r16
 
 ;Load in the first sequence (the numbers 0 to 9)
 ;Start pointer for SW1_PATTERNS
